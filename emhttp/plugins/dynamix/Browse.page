@@ -39,6 +39,22 @@ if (!file_exists($editor)) file_put_contents($editor, implode("\n",['','txt','js
 ?>
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.switchbutton.css")?>">
+<style>
+/* Fix #2500: Prevent dialog width changes with long filenames */
+.ui-dialog .dfm_source,
+.ui-dialog #dfm_target {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+table.indexer td[id^="name_"] {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>
 
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
 <script src="<?autov("/webGui/javascript/jquery.switchbutton.js")?>"></script>
@@ -960,7 +976,20 @@ function loadList() {
 }
 
 function xlink(link) {
-  swal({title:'',text:decodeURIComponent(link),html:true,confirmButtonText:"_(Ok)_"});
+  var path = decodeURIComponent(link).trim();
+  
+  // Try to copy to clipboard
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(path).then(function() {
+      swal({title:'',text:path+'<br><br><i class="fa fa-check green-text"></i> _(Copied to clipboard)_',html:true,confirmButtonText:"_(Ok)_"});
+    }).catch(function() {
+      // Fallback if clipboard API fails
+      swal({title:'',text:path,html:true,confirmButtonText:"_(Ok)_"});
+    });
+  } else {
+    // Fallback for older browsers
+    swal({title:'',text:path,html:true,confirmButtonText:"_(Ok)_"});
+  }
 }
 
 $(function(){
