@@ -13,6 +13,7 @@
 <?
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/webGui/include/Helpers.php";
+require_once "$docroot/plugins/dynamix/include/PopularDestinations.php";
 
 // add translations
 $_SERVER['REQUEST_URI'] = '';
@@ -218,9 +219,19 @@ case 'file':
     // add task to queue
     $data['task'] = rawurldecode($_POST['task']);
     file_put_contents($jobs, json_encode($data)."\n", FILE_APPEND);
+    
+    // Update popular destinations for copy/move operations
+    if (in_array($data['action'], ['3', '4', '8', '9']) && !empty($data['target'])) {
+      updatePopularDestinations($data['target']);
+    }
   } else {
     // start operation
     file_put_contents($active, json_encode($data));
+    
+    // Update popular destinations for copy/move operations
+    if (in_array($data['action'], ['3', '4', '8', '9']) && !empty($data['target'])) {
+      updatePopularDestinations($data['target']);
+    }
   }
   die();
 }
